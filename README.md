@@ -4,6 +4,7 @@ A very handy C++ profiler grab from [The Cherno](https://www.youtube.com/@TheChe
 ## Usage
 Includes `instrumentor.h` and call `Instrumentor::BeginSession` function.  
 Defining `PROFILING` before including `instrumentor.h` enables some useful macros.
+
 ```cpp
 #define PROFILING
 #include "instrumentor.h"
@@ -19,6 +20,8 @@ int main() {
     return 0;
 }
 ```
+
+When the file is generated, open Google Chrome and go to [chrome://tracing](chrome://tracing) to load the file.
 
 ## References
 1. [VISUAL BENCHMARKING in C++ (how to measure performance visually) - The Cherno](https://youtu.be/xlAH4dbMVnU)
