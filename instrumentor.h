@@ -3,9 +3,7 @@
 
 #include <chrono>
 #include <fstream>
-#include <functional>
 #include <mutex>
-#include <ratio>
 #include <string>
 #include <thread>
 
@@ -16,9 +14,7 @@ struct ProfileResult {
   unsigned long long thread_id;
 };
 
-// A Singleton profiler to write executaion info into given json file.
-// Users can load the output json file via `chrome://tracing` to observe the
-// execution time of program.
+// A profiler to write executaion info into given json file.
 class Instrumentor {
 public:
   // Delete copy constructor
@@ -27,9 +23,12 @@ public:
   // End the session before destructing object.
   ~Instrumentor() { GetInstance().EndSessionImpl(); }
 
+  // Start to record timestamps into json file and output to given path.
+  // This function will not create directory automatically.
+  // Load the output json file via `chrome://tracing` to observe the results.
   static inline void BeginSession(const std::string &session_name,
-                                  const std::string &filepath = "result.json") {
-    GetInstance().BeginSessionImpl(session_name, filepath);
+                                  const std::string &output_dir = "./") {
+    GetInstance().BeginSessionImpl(session_name, output_dir);
   }
 
   static inline void EndSession() { GetInstance().EndSessionImpl(); }
@@ -47,7 +46,7 @@ private:
   }
 
   void BeginSessionImpl(const std::string &session_name,
-                        const std::string &filepath) {
+                        const std::string &output_dir) {
     if (is_active_) {
       // Stop last session and restart.
       EndSessionImpl();
@@ -55,7 +54,7 @@ private:
     session_name_ = session_name;
     is_active_ = true;
 
-    output_stream_.open(session_name_ + "_" + filepath);
+    output_stream_.open(output_dir + session_name_ + ".json");
     WriteHeader();
   }
 
