@@ -1,7 +1,9 @@
 # Instrumentor
+
 A very handy C++ profiler grab from [The Cherno](https://www.youtube.com/@TheCherno) C++ series.
 
 ## Usage
+
 Includes `instrumentor.h` and call `Instrumentor::BeginSession` function.  
 Defining `PROFILING` before including `instrumentor.h` enables some useful macros.
 
@@ -24,5 +26,6 @@ int main() {
 When the file is generated, open Google Chrome and go to [chrome://tracing](chrome://tracing) to load the file.
 
 ## References
+
 1. [VISUAL BENCHMARKING in C++ (how to measure performance visually) - The Cherno](https://youtu.be/xlAH4dbMVnU)
 2. [GavinSun0921/InstrumentorTimer](https://github.com/GavinSun0921/InstrumentorTimer)
