@@ -1,11 +1,11 @@
 #ifndef INSTRUMENTOR_H_
-#define INSTRUMENTOR_H_
+  #define INSTRUMENTOR_H_
 
-#include <chrono>
-#include <fstream>
-#include <mutex>
-#include <string>
-#include <thread>
+  #include <chrono>
+  #include <fstream>
+  #include <mutex>
+  #include <string>
+  #include <thread>
 
 struct ProfileResult {
   std::string name;
@@ -17,8 +17,9 @@ struct ProfileResult {
 // A profiler to write executaion info into given json file.
 class Instrumentor {
 public:
-  // Delete copy constructor
-  Instrumentor(const Instrumentor &) = delete;
+  // Delete copy constructor and copy assign operator.
+  Instrumentor(const Instrumentor&) = delete;
+  Instrumentor& operator=(const Instrumentor&) = delete;
 
   // End the session before destructing object.
   ~Instrumentor() { GetInstance().EndSessionImpl(); }
@@ -26,27 +27,27 @@ public:
   // Start to record timestamps into json file and output to given path.
   // This function will not create directory automatically.
   // Load the output json file via `chrome://tracing` to observe the results.
-  static inline void BeginSession(const std::string &session_name,
-                                  const std::string &output_dir = "./") {
+  static inline void BeginSession(const std::string& session_name,
+                                  const std::string& output_dir = "./") {
     GetInstance().BeginSessionImpl(session_name, output_dir);
   }
 
   static inline void EndSession() { GetInstance().EndSessionImpl(); }
 
-  static inline void WriteProfile(const ProfileResult &result) {
+  static inline void WriteProfile(const ProfileResult& result) {
     GetInstance().WriteProfileImpl(result);
   }
 
 private:
-  Instrumentor() : session_name_(""), profile_count_(0), is_active_(false) {}
+  Instrumentor() : profile_count_(0), is_active_(false) {}
 
-  static inline Instrumentor &GetInstance() {
+  static inline Instrumentor& GetInstance() {
     static Instrumentor instance;
     return instance;
   }
 
-  void BeginSessionImpl(const std::string &session_name,
-                        const std::string &output_dir) {
+  void BeginSessionImpl(const std::string& session_name,
+                        const std::string& output_dir) {
     if (is_active_) {
       // Stop last session and restart.
       EndSessionImpl();
@@ -78,7 +79,7 @@ private:
     output_stream_.flush();
   }
 
-  void WriteProfileImpl(const ProfileResult &result) {
+  void WriteProfileImpl(const ProfileResult& result) {
     std::lock_guard<std::mutex> lock_guard(lock_);
     if (profile_count_++ > 0) {
       output_stream_ << ", ";
@@ -108,9 +109,12 @@ private:
 
 class InstrumentorTimer {
 public:
-  explicit InstrumentorTimer(const char *name) : name_(name), is_stop_(false) {
+  explicit InstrumentorTimer(const char* name) : name_(name), is_stop_(false) {
     start_ = std::chrono::steady_clock::now();
   }
+
+  InstrumentorTimer(const InstrumentorTimer&) = delete;
+  InstrumentorTimer& operator=(const InstrumentorTimer&) = delete;
 
   ~InstrumentorTimer() {
     if (!is_stop_) {
@@ -119,45 +123,50 @@ public:
   }
 
   void Stop() {
-    auto end_ = std::chrono::steady_clock::now();
+    auto end = std::chrono::steady_clock::now();
 
-    long long start =
-        std::chrono::time_point_cast<std::chrono::microseconds>(start_)
-            .time_since_epoch()
-            .count();
+    long long start_count
+        = std::chrono::time_point_cast<std::chrono::microseconds>(start_)
+              .time_since_epoch()
+              .count();
 
-    long long end =
-        std::chrono::time_point_cast<std::chrono::microseconds>(end_)
-            .time_since_epoch()
-            .count();
+    long long end_count
+        = std::chrono::time_point_cast<std::chrono::microseconds>(end)
+              .time_since_epoch()
+              .count();
 
     // Hashes the raw thread ID for cross-platform and consistency?
-    unsigned long long thread_id =
-        std::hash<std::thread::id>{}(std::this_thread::get_id());
+    unsigned long long thread_id
+        = std::hash<std::thread::id>{}(std::this_thread::get_id());
 
-    Instrumentor::WriteProfile({name_, start, end, thread_id});
+    Instrumentor::WriteProfile({
+        .name = name_,
+        .start = start_count,
+        .end = end_count,
+        .thread_id = thread_id,
+    });
     is_stop_ = true;
   }
 
 private:
-  const char *name_;
+  const char* name_;
   bool is_stop_;
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
-#endif // INSTRUMENTOR_H_
+#endif  // INSTRUMENTOR_H_
 
 // Some useful macros.
 #if defined(PROFILING)
-#define PROFILE_SCOPE(name) InstrumentorTimer timer##__LINE__(name)
+  #define PROFILE_SCOPE(name) InstrumentorTimer timer##__LINE__(name)
 
-#if defined(_MSC_VER)
-#define PROFILE_FUNC() PROFILE_SCOPE(__FUNCSIG__)
-#else
-#define PROFILE_FUNC() PROFILE_SCOPE(__PRETTY_FUNCTION__)
-#endif //_MSC_VER
+  #if defined(_MSC_VER)
+    #define PROFILE_FUNC() PROFILE_SCOPE(__FUNCSIG__)
+  #else
+    #define PROFILE_FUNC() PROFILE_SCOPE(__PRETTY_FUNCTION__)
+  #endif  //_MSC_VER
 
 #else
-#define PROFILE_SCOPE(name)
-#define PROFILE_FUNC()
-#endif // PROFILING
+  #define PROFILE_SCOPE(name)
+  #define PROFILE_FUNC()
+#endif  // PROFILING
