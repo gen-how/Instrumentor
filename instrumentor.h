@@ -1,11 +1,23 @@
 #ifndef INSTRUMENTOR_H_
-  #define INSTRUMENTOR_H_
+#define INSTRUMENTOR_H_
 
-  #include <chrono>
-  #include <fstream>
-  #include <mutex>
-  #include <string>
-  #include <thread>
+#include <chrono>
+#include <fstream>
+#include <mutex>
+#include <string>
+#include <thread>
+
+#if defined(PROFILING)
+#  define PROFILE_SCOPE(name) InstrumentorTimer timer##__LINE__(name)
+#  if defined(_MSC_VER)
+#    define PROFILE_FUNC() PROFILE_SCOPE(__FUNCSIG__)
+#  else
+#    define PROFILE_FUNC() PROFILE_SCOPE(__PRETTY_FUNCTION__)
+#  endif  //_MSC_VER
+#else
+#  define PROFILE_SCOPE(name)
+#  define PROFILE_FUNC()
+#endif  // PROFILING
 
 struct ProfileResult {
   std::string name;
@@ -155,18 +167,3 @@ private:
 };
 
 #endif  // INSTRUMENTOR_H_
-
-// Some useful macros.
-#if defined(PROFILING)
-  #define PROFILE_SCOPE(name) InstrumentorTimer timer##__LINE__(name)
-
-  #if defined(_MSC_VER)
-    #define PROFILE_FUNC() PROFILE_SCOPE(__FUNCSIG__)
-  #else
-    #define PROFILE_FUNC() PROFILE_SCOPE(__PRETTY_FUNCTION__)
-  #endif  //_MSC_VER
-
-#else
-  #define PROFILE_SCOPE(name)
-  #define PROFILE_FUNC()
-#endif  // PROFILING
