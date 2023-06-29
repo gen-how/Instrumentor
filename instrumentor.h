@@ -1,6 +1,7 @@
 #ifndef INSTRUMENTOR_H_
 #define INSTRUMENTOR_H_
 
+#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <mutex>
